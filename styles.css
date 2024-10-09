@@ -31,9 +31,40 @@ li {
     padding: 15px;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .job-details {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    /* Cambiado a columna para mejor organización */
+    width: 70%;
+    /* Aumentado el ancho para darle más espacio */
+}
+
+.job-details span {
+    margin: 5px 0;
+    /* Espaciado entre los elementos */
+}
+
+button {
+    padding: 10px 15px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #0056b3;
+    /* Color al pasar el mouse */
+}
+
+.postulated {
+    background: #d4edda;
+    border-left: 4px solid #28a745;
 }

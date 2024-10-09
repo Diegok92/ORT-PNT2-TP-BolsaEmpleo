@@ -31,19 +31,36 @@ const jobs = [
 
 function displayJobs() {
 	const jobList = document.getElementById("job-items");
-	jobs.forEach((job) => {
+	jobs.forEach((job, index) => {
 		const listItem = document.createElement("li");
+		listItem.setAttribute("id", `job-${index}`);
 		listItem.innerHTML = `
-            <h3>${job.title}</h3>
-            <div class="job-details">
-                <span>${job.vacancies} vacantes</span>
-                <span>${job.company}</span>
-                <span>${job.date}</span>
-                <span>${job.province}</span>
+            <div>
+                <h3>${job.title}</h3>
+                <div class="job-details">
+                    <span>${job.vacancies} vacantes</span>
+                    <span>${job.company}</span>
+                    <span>${job.date}</span>
+                    <span>${job.province}</span>
+                </div>
             </div>
+            <button onclick="toggleApplication(${index})">Postularse</button>
         `;
 		jobList.appendChild(listItem);
 	});
+}
+
+function toggleApplication(index) {
+	const jobItem = document.getElementById(`job-${index}`);
+	const button = jobItem.querySelector("button");
+
+	if (jobItem.classList.contains("postulated")) {
+		jobItem.classList.remove("postulated");
+		button.textContent = "Postularse";
+	} else {
+		jobItem.classList.add("postulated");
+		button.textContent = "Retirar Postulación";
+	}
 }
 
 window.onload = displayJobs;
