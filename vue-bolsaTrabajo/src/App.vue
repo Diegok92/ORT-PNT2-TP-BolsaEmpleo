@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import JobListing from './components/JobListing.vue'
 import JobBoard from './components/JobBoard.vue'
+import UserRegistration from './components/UserRegistration.vue'
 
 const isEmployer = ref(false) // Cambia este valor según el rol del usuario
 </script>
@@ -20,6 +21,10 @@ const isEmployer = ref(false) // Cambia este valor según el rol del usuario
     </section>
     <section v-else>
       <JobBoard />
+    </section>
+
+    <section>
+    <UserRegistration />
     </section>
   </div>
 </template>
