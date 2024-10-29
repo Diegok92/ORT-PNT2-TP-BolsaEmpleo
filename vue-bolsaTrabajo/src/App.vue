@@ -1,10 +1,13 @@
 <script setup>
-import { ref } from 'vue'
-import JobListing from './components/JobListing.vue'
-import JobBoard from './components/JobBoard.vue'
-import UserRegistration from './components/UserRegistration.vue'
+import { ref } from "vue";
+import JobListing from "./components/JobListing.vue";
+import JobBoard from "./components/JobBoard.vue";
+import UserRegistration from "./components/UserRegistration.vue";
+import UserLogin from "./components/UserLogIn.vue";
+import UsersBoard from "./components/UsersBoard.vue";
+import UserLogIn from "./components/UserLogIn.vue";
 
-const isEmployer = ref(false) // Cambia este valor según el rol del usuario
+const isEmployer = ref(false); // Cambia este valor según el rol del usuario
 </script>
 
 <template>
@@ -12,7 +15,7 @@ const isEmployer = ref(false) // Cambia este valor según el rol del usuario
     <header>
       <h1>Bolsa de Trabajo</h1>
       <button @click="isEmployer = !isEmployer">
-        Cambiar a {{ isEmployer ? 'Candidato' : 'Empleador' }}
+        Cambiar a {{ isEmployer ? "Candidato" : "Empleador" }}
       </button>
     </header>
 
@@ -22,9 +25,14 @@ const isEmployer = ref(false) // Cambia este valor según el rol del usuario
     <section v-else>
       <JobBoard />
     </section>
-
     <section>
-    <UserRegistration />
+      <UserRegistration />
+    </section>
+    <section>
+      <UserLogin />
+    </section>
+    <section>
+      <UsersBoard />
     </section>
   </div>
 </template>
