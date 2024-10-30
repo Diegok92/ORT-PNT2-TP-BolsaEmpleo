@@ -13,11 +13,11 @@ const isEmployer = ref(false); // Cambia este valor según el rol del usuario
   <div>
     <header>
       <h1>Bolsa de Trabajo</h1>
-      <button @click="isEmployer = !isEmployer">
+      
+    </header>
+    <button @click="isEmployer = !isEmployer">
         Cambiar a {{ isEmployer ? "Candidato" : "Empleador" }}
       </button>
-    </header>
-
     <section v-if="isEmployer">
       <JobListing />
     </section>
@@ -57,5 +57,8 @@ button {
   padding: 0.5em 1em;
   cursor: pointer;
   border-radius: 4px;
+}
+li{
+  background-color: black;
 }
 </style>
