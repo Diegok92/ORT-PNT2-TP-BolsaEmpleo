@@ -5,7 +5,6 @@ import JobBoard from "./components/JobBoard.vue";
 import UserRegistration from "./components/UserRegistration.vue";
 import UserLogin from "./components/UserLogIn.vue";
 import UsersBoard from "./components/UsersBoard.vue";
-import UserLogIn from "./components/UserLogIn.vue";
 
 const isEmployer = ref(false); // Cambia este valor según el rol del usuario
 </script>
