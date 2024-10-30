@@ -6,7 +6,8 @@ const username = ref("");
 const email = ref("");
 const password = ref("");
 const role = ref("Postulante"); // Valor por defecto
-const API_URL = "https://671d78fd09103098807d2196.mockapi.io/v1/UserLogin";
+const API_URL =
+  "https://671d78fd09103098807d2196.mockapi.io/v1/RegisteredUsers";
 
 async function UserLogin() {
   try {
