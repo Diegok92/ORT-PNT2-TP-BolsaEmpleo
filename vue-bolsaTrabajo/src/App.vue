@@ -3,7 +3,7 @@ import { ref } from "vue";
 import JobListing from "./components/JobListing.vue";
 import JobBoard from "./components/JobBoard.vue";
 import UserRegistration from "./components/UserRegistration.vue";
-import UserLogin from "./components/UserLogIn.vue";
+import UserLogin from "./components/UserLogin.vue";
 import UsersBoard from "./components/UsersBoard.vue";
 
 const isEmployer = ref(false); // Cambia este valor según el rol del usuario
