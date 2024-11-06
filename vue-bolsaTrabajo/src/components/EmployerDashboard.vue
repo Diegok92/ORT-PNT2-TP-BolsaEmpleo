@@ -1,13 +1,18 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import { useAuthStore } from "../stores/auth";
+import JobListing from "./JobListing.vue";
 
 const jobs = ref([]);
 const API_URL = "https://671d728409103098807d13b7.mockapi.io/api/v1/posteos";
+const authStore = useAuthStore();
 
 async function fetchJobs() {
 	try {
-		const response = await axios.get(API_URL);
+		const response = await axios.get(API_URL, {
+			params: { employerId: authStore.user.id },
+		});
 		if (response.status === 200) {
 			jobs.value = response.data;
 		} else {
@@ -24,46 +29,28 @@ async function fetchJobs() {
 	}
 }
 
-async function applyToJob(jobId) {
-	try {
-		alert(`Te postulaste al trabajo con ID: ${jobId}`);
-	} catch (error) {
-		console.error("Error al postularse:", error);
-		alert("Hubo un error al postularte");
-	}
-}
-
 onMounted(fetchJobs);
 </script>
 
 <template>
 	<div class="container mt-5">
-		<h2 class="text-center text-primary">Trabajos Disponibles</h2>
-		<div class="row mt-4">
+		<h2>Panel de Empleador</h2>
+		<p>Bienvenido, {{ authStore.user.username }}</p>
+		<h3>Mis Trabajos Publicados</h3>
+		<div class="row">
 			<div class="col-md-4" v-for="job in jobs" :key="job.id">
 				<div class="card mb-4">
 					<div class="card-body">
 						<h5 class="card-title">{{ job.title }}</h5>
 						<p class="card-text">{{ job.description }}</p>
-						<button
-							@click="applyToJob(job.id)"
-							class="btn btn-outline-primary w-100"
-						>
-							<i class="bi bi-send"></i> Postularse
-						</button>
 					</div>
 				</div>
 			</div>
 		</div>
+		<JobListing />
 	</div>
 </template>
 
 <style scoped>
-.card {
-	transition: transform 0.3s ease-in-out;
-}
-
-.card:hover {
-	transform: scale(1.05);
-}
+/* Estilos aquí */
 </style>

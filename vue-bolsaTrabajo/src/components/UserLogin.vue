@@ -1,77 +1,98 @@
 <script setup>
 import { ref } from "vue";
 import axios from "axios";
+import { useAuthStore } from "../stores/auth";
+import { useRouter } from "vue-router";
 
-const username = ref("");
 const email = ref("");
 const password = ref("");
-const role = ref("Postulante"); // Valor por defecto
 const API_URL =
-  "https://671d78fd09103098807d2196.mockapi.io/v1/RegisteredUsers";
+	"https://671d78fd09103098807d2196.mockapi.io/v1/RegisteredUsers";
+
+const authStore = useAuthStore();
+const router = useRouter();
 
 async function UserLogin() {
-  try {
-    const response = await axios.post(API_URL, {
-      email: email.value,
-      password: password.value,
-    });
-    if (response.status === 201) {
-      alert("Ingresado exitosamente");
-      // Limpiar formulario
-      email.value = "";
-      password.value = "";
-    } else {
-      alert("Error al Ingresar el usuario: Respuesta inesperada del servidor");
-    }
-  } catch (error) {
-    console.error("Error de registro:", error);
-    alert(
-      `Hubo un error al registrar el usuario: ${
-        error.message || "Error desconocido"
-      }`
-    );
-  }
+	try {
+		// Realizamos una solicitud GET para obtener todos los usuarios registrados
+		const response = await axios.get(API_URL);
+
+		if (response.status === 200) {
+			// Buscamos el usuario en el listado de registros
+			const users = response.data;
+			const user = users.find(
+				(u) => u.email === email.value && u.password === password.value
+			);
+
+			if (user) {
+				// Guardamos la información del usuario en el store
+				authStore.login(user);
+
+				alert("Ingresado exitosamente");
+
+				// Limpiar los campos de formulario
+				email.value = "";
+				password.value = "";
+
+				// Redirigimos al usuario según su rol
+				if (user.role === "Empleador") {
+					router.push("/employer-dashboard");
+				} else if (user.role === "Postulante") {
+					router.push("/applicant-dashboard");
+				} else if (user.role === "Administrador") {
+					router.push("/admin-dashboard");
+				} else {
+					router.push("/");
+				}
+			} else {
+				// Si no encuentra el usuario, mostramos un mensaje de error
+				alert("Email o contraseña incorrectos");
+			}
+		} else {
+			alert(
+				"Error al verificar los usuarios: Respuesta inesperada del servidor"
+			);
+		}
+	} catch (error) {
+		console.error("Error al iniciar sesión:", error);
+		alert(
+			`Hubo un error al iniciar sesión: ${error.message || "Error desconocido"}`
+		);
+	}
 }
 </script>
 
 <template>
-  <div>
-    <h2>Ingrese Usuario</h2>
-    <form @submit.prevent="UserLogin">
-      <label for="email">Correo Electrónico</label>
-      <input v-model="email" id="email" type="email" required />
+	<div class="container mt-5">
+		<h2>Iniciar Sesión</h2>
+		<form @submit.prevent="UserLogin">
+			<div class="mb-3">
+				<label for="email" class="form-label">Correo Electrónico</label>
+				<input
+					v-model="email"
+					id="email"
+					type="email"
+					required
+					class="form-control"
+				/>
+			</div>
 
-      <label for="password">Contraseña</label>
-      <input v-model="password" id="password" type="password" required />
+			<div class="mb-3">
+				<label for="password" class="form-label">Contraseña</label>
+				<input
+					v-model="password"
+					id="password"
+					type="password"
+					required
+					class="form-control"
+				/>
+			</div>
 
-      <button type="submit">Ingresar</button>
-    </form>
-  </div>
+			<button type="submit" class="btn btn-primary">Ingresar</button>
+		</form>
+	</div>
 </template>
 
 <style scoped>
-/* Estilos aquí */
-form {
-  display: flex;
-  flex-direction: column;
-}
-
-label {
-  margin-top: 10px;
-}
-
-input,
-select {
-  padding: 8px;
-  margin-top: 5px;
-}
-
-button {
-  margin-top: 10px;
-  padding: 10px;
-  background-color: #42b883;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
+/* Puedes añadir estilos adicionales aquí */
 </style>
