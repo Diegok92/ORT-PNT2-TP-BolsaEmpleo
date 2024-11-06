@@ -3,7 +3,8 @@ import { ref, onMounted } from "vue";
 import axios from "axios";
 
 const jobs = ref([]);
-const API_URL = "https://671d728409103098807d13b7.mockapi.io/api/v1/posteos";
+const API_URL =
+	"https://671d78fd09103098807d2196.mockapi.io/v1/RegisteredUsers/1/empleo";
 
 async function fetchJobs() {
 	try {

@@ -5,7 +5,8 @@ import { useAuthStore } from "../stores/auth";
 
 const jobTitle = ref("");
 const jobDescription = ref("");
-const API_URL = "https://671d728409103098807d13b7.mockapi.io/api/v1/posteos";
+const API_URL =
+	"https://671d78fd09103098807d2196.mockapi.io/v1/RegisteredUsers/1/empleo";
 
 const authStore = useAuthStore();
 
