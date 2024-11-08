@@ -42,14 +42,22 @@ async function applyToJob(job) {
 	}
 
 	try {
-		const response = await axios.post(`${API_URL}/${job.id}/postulaciones`, {
-			userId: authStore.user.id,
-			jobId: job.id,
-			username: authStore.user.username,
+		// Agregar la postulación al array de postulaciones del trabajo
+		const response = await axios.put(`${API_URL}/${job.id}`, {
+			...job,
+			applications: [
+				...(job.applications || []),
+				{
+					userId: authStore.user.id,
+					username: authStore.user.username,
+					appliedAt: new Date().toISOString(),
+				},
+			],
 		});
 
-		if (response.status === 201 || response.status === 200) {
+		if (response.status === 200) {
 			alert(`Te has postulado exitosamente al trabajo "${job.title}"`);
+			fetchJobs(); // Actualizar la lista de trabajos después de la postulación
 		} else {
 			alert("Error al postularse: Respuesta inesperada del servidor");
 		}

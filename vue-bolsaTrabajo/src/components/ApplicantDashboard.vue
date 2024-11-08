@@ -20,8 +20,10 @@ async function fetchAppliedJobs() {
 			// Filtrar los empleos a los que se ha postulado el usuario
 			appliedJobs.value = response.data.filter(
 				(job) =>
-					job.postulaciones &&
-					job.postulaciones.some((p) => p.userId === authStore.user.id)
+					job.applications &&
+					job.applications.some(
+						(application) => application.userId === authStore.user.id
+					)
 			);
 		} else {
 			console.warn(
@@ -66,6 +68,14 @@ onMounted(fetchAppliedJobs);
 									<i class="fas fa-briefcase"></i> {{ job.title }}
 								</h5>
 								<p class="card-text text-muted">{{ job.description }}</p>
+								<p class="card-text text-muted">
+									<strong>Fecha de Postulación:</strong>
+									{{
+										job.applications.find(
+											(application) => application.userId === authStore.user.id
+										)?.appliedAt
+									}}
+								</p>
 							</div>
 						</div>
 					</div>
