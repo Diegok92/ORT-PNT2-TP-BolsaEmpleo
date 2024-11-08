@@ -1,6 +1,8 @@
 <script setup>
+import { onMounted } from "vue";
 import { useAuthStore } from "./stores/auth";
 import { useRouter } from "vue-router";
+import * as bootstrap from "bootstrap";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -9,6 +11,14 @@ function logout() {
 	authStore.logout();
 	router.push("/");
 }
+
+onMounted(() => {
+	// Inicializa todos los dropdowns en la página usando Bootstrap
+	const dropdownElements = document.querySelectorAll(".dropdown-toggle");
+	dropdownElements.forEach((dropdownToggleEl) => {
+		new bootstrap.Dropdown(dropdownToggleEl);
+	});
+});
 </script>
 
 <template>
@@ -48,7 +58,7 @@ function logout() {
 						<li v-if="authStore.user" class="nav-item dropdown">
 							<a
 								class="nav-link dropdown-toggle"
-								href="#"
+								href="javascript:void(0);"
 								id="navbarDropdown"
 								role="button"
 								data-bs-toggle="dropdown"
@@ -62,23 +72,27 @@ function logout() {
 								aria-labelledby="navbarDropdown"
 							>
 								<li v-if="authStore.user.role === 'Empleador'">
-									<router-link class="dropdown-item" to="/employer-dashboard"
-										>Mi Panel</router-link
-									>
+									<router-link class="dropdown-item" to="/employer-dashboard">
+										Mi Panel
+									</router-link>
 								</li>
 								<li v-if="authStore.user.role === 'Postulante'">
-									<router-link class="dropdown-item" to="/applicant-dashboard"
-										>Mi Panel</router-link
-									>
+									<router-link class="dropdown-item" to="/applicant-dashboard">
+										Mi Panel
+									</router-link>
 								</li>
 								<li v-if="authStore.user.role === 'Administrador'">
-									<router-link class="dropdown-item" to="/admin-dashboard"
-										>Panel Admin</router-link
-									>
+									<router-link class="dropdown-item" to="/admin-dashboard">
+										Panel Admin
+									</router-link>
 								</li>
 								<li><hr class="dropdown-divider" /></li>
 								<li>
-									<a class="dropdown-item" href="#" @click.prevent="logout">
+									<a
+										class="dropdown-item"
+										href="javascript:void(0);"
+										@click.prevent="logout"
+									>
 										<i class="bi bi-box-arrow-left"></i> Cerrar Sesión
 									</a>
 								</li>

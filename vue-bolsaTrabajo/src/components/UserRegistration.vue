@@ -43,46 +43,57 @@ async function registerUser() {
 
 <template>
 	<div class="container mt-5">
-		<div class="card mx-auto" style="max-width: 600px">
+		<div class="card mx-auto shadow-lg border-0" style="max-width: 600px">
 			<div class="card-body">
 				<h2 class="card-title text-center mb-4 text-primary">
-					Registrar Usuario
+					<i class="fas fa-user-plus"></i> Registrar Usuario
 				</h2>
 				<form @submit.prevent="registerUser">
 					<div class="mb-3">
 						<label for="username" class="form-label">Nombre de Usuario</label>
-						<input
-							v-model="username"
-							id="username"
-							type="text"
-							required
-							class="form-control"
-							placeholder="Ingresa tu nombre de usuario"
-						/>
+						<div class="input-group">
+							<span class="input-group-text"><i class="fas fa-user"></i></span>
+							<input
+								v-model="username"
+								id="username"
+								type="text"
+								required
+								class="form-control"
+								placeholder="Ingresa tu nombre de usuario"
+							/>
+						</div>
 					</div>
 
 					<div class="mb-3">
 						<label for="email" class="form-label">Correo Electrónico</label>
-						<input
-							v-model="email"
-							id="email"
-							type="email"
-							required
-							class="form-control"
-							placeholder="ejemplo@correo.com"
-						/>
+						<div class="input-group">
+							<span class="input-group-text"
+								><i class="fas fa-envelope"></i
+							></span>
+							<input
+								v-model="email"
+								id="email"
+								type="email"
+								required
+								class="form-control"
+								placeholder="ejemplo@correo.com"
+							/>
+						</div>
 					</div>
 
 					<div class="mb-3">
 						<label for="password" class="form-label">Contraseña</label>
-						<input
-							v-model="password"
-							id="password"
-							type="password"
-							required
-							class="form-control"
-							placeholder="Ingresa tu contraseña"
-						/>
+						<div class="input-group">
+							<span class="input-group-text"><i class="fas fa-lock"></i></span>
+							<input
+								v-model="password"
+								id="password"
+								type="password"
+								required
+								class="form-control"
+								placeholder="Ingresa tu contraseña"
+							/>
+						</div>
 					</div>
 
 					<div class="mb-3">
@@ -94,7 +105,9 @@ async function registerUser() {
 						</select>
 					</div>
 
-					<button type="submit" class="btn btn-primary w-100">Registrar</button>
+					<button type="submit" class="btn btn-success w-100">
+						<i class="fas fa-user-plus"></i> Registrar
+					</button>
 				</form>
 			</div>
 		</div>
@@ -102,7 +115,21 @@ async function registerUser() {
 </template>
 
 <style scoped>
-body {
-	background-color: #f8f9fa;
+.container {
+	margin-top: 5rem;
+}
+
+.card {
+	border-radius: 12px;
+}
+
+.btn-success {
+	background-color: #28a745;
+	border-color: #28a745;
+}
+
+.btn-success:hover {
+	background-color: #218838;
+	border-color: #1e7e34;
 }
 </style>

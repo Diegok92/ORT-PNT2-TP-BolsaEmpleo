@@ -44,16 +44,30 @@ onMounted(fetchAppliedJobs);
 
 <template>
 	<div class="container mt-5">
-		<h2>Panel del Postulante</h2>
-		<p>Bienvenido, {{ authStore.user.username }}</p>
+		<div class="card mx-auto shadow-lg border-0 p-4" style="max-width: 800px">
+			<div class="card-body">
+				<div class="text-center mb-5">
+					<h2 class="display-4 text-primary">
+						<i class="fas fa-briefcase"></i> Panel del Postulante
+					</h2>
+					<p class="lead text-secondary">
+						Bienvenido, {{ authStore.user.username }}
+					</p>
+				</div>
 
-		<h3 class="mt-4">Mis Postulaciones</h3>
-		<div class="row">
-			<div class="col-md-4" v-for="job in appliedJobs" :key="job.id">
-				<div class="card mb-4">
-					<div class="card-body">
-						<h5 class="card-title">{{ job.title }}</h5>
-						<p class="card-text">{{ job.description }}</p>
+				<h3 class="text-primary mb-4">
+					<i class="fas fa-file-alt"></i> Mis Postulaciones
+				</h3>
+				<div class="row g-4">
+					<div class="col-md-6" v-for="job in appliedJobs" :key="job.id">
+						<div class="card shadow-sm h-100 border-0">
+							<div class="card-body">
+								<h5 class="card-title text-primary">
+									<i class="fas fa-briefcase"></i> {{ job.title }}
+								</h5>
+								<p class="card-text text-muted">{{ job.description }}</p>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -62,11 +76,35 @@ onMounted(fetchAppliedJobs);
 </template>
 
 <style scoped>
+.container {
+	margin-top: 5rem;
+}
+
 .card {
+	border-radius: 12px;
 	transition: transform 0.3s ease-in-out;
 }
 
 .card:hover {
-	transform: scale(1.05);
+	transform: translateY(-5px);
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+	font-weight: 600;
+}
+
+.card-text {
+	font-size: 0.95rem;
+}
+
+.btn-primary {
+	background-color: #1a73e8;
+	border-color: #1a73e8;
+}
+
+.btn-primary:hover {
+	background-color: #1769c0;
+	border-color: #1769c0;
 }
 </style>

@@ -64,35 +64,69 @@ async function UserLogin() {
 
 <template>
 	<div class="container mt-5">
-		<h2>Iniciar Sesión</h2>
-		<form @submit.prevent="UserLogin">
-			<div class="mb-3">
-				<label for="email" class="form-label">Correo Electrónico</label>
-				<input
-					v-model="email"
-					id="email"
-					type="email"
-					required
-					class="form-control"
-				/>
-			</div>
+		<div class="card mx-auto shadow-lg border-0" style="max-width: 500px">
+			<div class="card-body">
+				<h2 class="card-title text-center mb-4 text-primary">
+					<i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+				</h2>
+				<form @submit.prevent="UserLogin">
+					<div class="mb-3">
+						<label for="email" class="form-label">Correo Electrónico</label>
+						<div class="input-group">
+							<span class="input-group-text"
+								><i class="fas fa-envelope"></i
+							></span>
+							<input
+								v-model="email"
+								id="email"
+								type="email"
+								required
+								class="form-control"
+								placeholder="ejemplo@correo.com"
+							/>
+						</div>
+					</div>
 
-			<div class="mb-3">
-				<label for="password" class="form-label">Contraseña</label>
-				<input
-					v-model="password"
-					id="password"
-					type="password"
-					required
-					class="form-control"
-				/>
-			</div>
+					<div class="mb-3">
+						<label for="password" class="form-label">Contraseña</label>
+						<div class="input-group">
+							<span class="input-group-text"><i class="fas fa-lock"></i></span>
+							<input
+								v-model="password"
+								id="password"
+								type="password"
+								required
+								class="form-control"
+								placeholder="Ingresa tu contraseña"
+							/>
+						</div>
+					</div>
 
-			<button type="submit" class="btn btn-primary">Ingresar</button>
-		</form>
+					<button type="submit" class="btn btn-primary w-100">
+						<i class="fas fa-sign-in-alt"></i> Ingresar
+					</button>
+				</form>
+			</div>
+		</div>
 	</div>
 </template>
 
 <style scoped>
-/* Puedes añadir estilos adicionales aquí */
+.container {
+	margin-top: 5rem;
+}
+
+.card {
+	border-radius: 12px;
+}
+
+.btn-primary {
+	background-color: #1a73e8;
+	border-color: #1a73e8;
+}
+
+.btn-primary:hover {
+	background-color: #1769c0;
+	border-color: #1769c0;
+}
 </style>
