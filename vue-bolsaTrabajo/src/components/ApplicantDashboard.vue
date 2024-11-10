@@ -17,14 +17,24 @@ async function fetchAppliedJobs() {
 	try {
 		const response = await axios.get(API_URL);
 		if (response.status === 200) {
-			// Filtrar los empleos a los que se ha postulado el usuario
-			appliedJobs.value = response.data.filter(
-				(job) =>
-					job.applications &&
-					job.applications.some(
+			// Filtrar los empleos a los que se ha postulado el usuario y extraer la fecha de postulación
+			appliedJobs.value = response.data
+				.filter(
+					(job) =>
+						job.applications &&
+						job.applications.some(
+							(application) => application.userId === authStore.user.id
+						)
+				)
+				.map((job) => {
+					const application = job.applications.find(
 						(application) => application.userId === authStore.user.id
-					)
-			);
+					);
+					return {
+						...job,
+						appliedAt: application ? application.appliedAt : null,
+					};
+				});
 		} else {
 			console.warn(
 				`Respuesta inesperada al cargar trabajos: ${response.statusText}`
@@ -39,6 +49,38 @@ async function fetchAppliedJobs() {
 			}`
 		);
 	}
+}
+
+async function withdrawApplication(job) {
+	try {
+		// Filtrar la postulación del usuario del array de aplicaciones del trabajo
+		const updatedApplications = job.applications.filter(
+			(application) => application.userId !== authStore.user.id
+		);
+
+		const response = await axios.put(`${API_URL}/${job.id}`, {
+			...job,
+			applications: updatedApplications,
+		});
+
+		if (response.status === 200) {
+			alert("Te has despostulado exitosamente del trabajo.");
+			fetchAppliedJobs(); // Actualizar la lista de trabajos después de despostularse
+		} else {
+			alert("Error al despostularse: Respuesta inesperada del servidor");
+		}
+	} catch (error) {
+		console.error("Error al despostularse:", error);
+		alert(
+			`Hubo un error al despostularte: ${error.message || "Error desconocido"}`
+		);
+	}
+}
+
+function formatAppliedAt(appliedAt) {
+	if (!appliedAt) return "No disponible";
+	const date = new Date(appliedAt);
+	return date.toLocaleString();
 }
 
 onMounted(fetchAppliedJobs);
@@ -63,19 +105,23 @@ onMounted(fetchAppliedJobs);
 				<div class="row g-4">
 					<div class="col-md-6" v-for="job in appliedJobs" :key="job.id">
 						<div class="card shadow-sm h-100 border-0">
-							<div class="card-body">
+							<div class="card-body d-flex flex-column">
 								<h5 class="card-title text-primary">
 									<i class="fas fa-briefcase"></i> {{ job.title }}
 								</h5>
 								<p class="card-text text-muted">{{ job.description }}</p>
-								<p class="card-text text-muted">
+								<p class="card-text">
 									<strong>Fecha de Postulación:</strong>
-									{{
-										job.applications.find(
-											(application) => application.userId === authStore.user.id
-										)?.appliedAt
-									}}
+									{{ formatAppliedAt(job.appliedAt) }}
 								</p>
+								<div class="mt-auto">
+									<button
+										class="btn btn-outline-danger w-100"
+										@click="withdrawApplication(job)"
+									>
+										<i class="fas fa-times-circle"></i> Despostularse
+									</button>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -116,5 +162,14 @@ onMounted(fetchAppliedJobs);
 .btn-primary:hover {
 	background-color: #1769c0;
 	border-color: #1769c0;
+}
+
+.btn-outline-danger {
+	transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-outline-danger:hover {
+	background-color: #dc3545;
+	color: #fff;
 }
 </style>

@@ -41,8 +41,19 @@ async function applyToJob(job) {
 		return;
 	}
 
+	// Verificar si el usuario ya se postuló a este trabajo
+	if (
+		job.applications &&
+		job.applications.some(
+			(application) => application.userId === authStore.user.id
+		)
+	) {
+		alert("Ya te has postulado a este trabajo.");
+		return;
+	}
+
 	try {
-		// Agregar la postulación al array de postulaciones del trabajo
+		// Agregar la postulación al array de aplicaciones del trabajo
 		const response = await axios.put(`${API_URL}/${job.id}`, {
 			...job,
 			applications: [
@@ -50,6 +61,7 @@ async function applyToJob(job) {
 				{
 					userId: authStore.user.id,
 					username: authStore.user.username,
+					email: authStore.user.email, // Incluimos el email del postulante
 					appliedAt: new Date().toISOString(),
 				},
 			],
@@ -69,6 +81,15 @@ async function applyToJob(job) {
 	}
 }
 
+function isAlreadyApplied(job) {
+	return (
+		job.applications &&
+		job.applications.some(
+			(application) => application.userId === authStore.user.id
+		)
+	);
+}
+
 onMounted(fetchJobs);
 </script>
 
@@ -83,16 +104,40 @@ onMounted(fetchJobs);
 			</div>
 			<div class="row g-4">
 				<div class="col-lg-4 col-md-6" v-for="job in jobs" :key="job.id">
-					<div class="card border-0 shadow-sm h-100">
+					<div
+						:class="[
+							'card',
+							'border-0',
+							'shadow-sm',
+							'h-100',
+							{ 'bg-success text-light': isAlreadyApplied(job) },
+						]"
+					>
 						<div class="card-body d-flex flex-column">
-							<h5 class="card-title text-primary">{{ job.title }}</h5>
-							<p class="card-text text-muted">{{ job.description }}</p>
+							<h5 class="card-title">{{ job.title }}</h5>
+							<p class="card-text">{{ job.description }}</p>
 							<div class="mt-auto">
 								<button
-									class="btn btn-outline-primary w-100"
+									class="btn"
+									:class="
+										isAlreadyApplied(job)
+											? 'btn-secondary'
+											: 'btn-outline-primary'
+									"
+									:disabled="isAlreadyApplied(job)"
 									@click="applyToJob(job)"
 								>
-									<i class="fas fa-paper-plane"></i> Postularse
+									<i
+										class="fas"
+										:class="
+											isAlreadyApplied(job)
+												? 'fa-check-circle'
+												: 'fa-paper-plane'
+										"
+									></i>
+									{{
+										isAlreadyApplied(job) ? "Ya te has postulado" : "Postularse"
+									}}
 								</button>
 							</div>
 						</div>
@@ -138,5 +183,9 @@ onMounted(fetchJobs);
 .btn-primary:hover {
 	background-color: #1769c0;
 	border-color: #1769c0;
+}
+
+.btn-secondary {
+	cursor: not-allowed;
 }
 </style>

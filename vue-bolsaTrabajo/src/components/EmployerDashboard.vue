@@ -2,10 +2,12 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import { useAuthStore } from "../stores/auth";
+import * as bootstrap from "bootstrap";
 
 const jobs = ref([]);
 const selectedJob = ref(null);
 const newJob = ref({ title: "", description: "" });
+const applicants = ref([]);
 const API_URL =
 	"https://671d78fd09103098807d2196.mockapi.io/v1/RegisteredUsers/1/empleo";
 const authStore = useAuthStore();
@@ -16,7 +18,9 @@ async function fetchJobs() {
 			params: { employerId: authStore.user.id },
 		});
 		if (response.status === 200) {
-			jobs.value = response.data;
+			jobs.value = response.data.filter(
+				(job) => job.employerId === authStore.user.id
+			);
 		} else {
 			console.warn(
 				`Respuesta inesperada al cargar trabajos: ${response.statusText}`
@@ -72,6 +76,8 @@ async function createJob() {
 			title: newJob.value.title,
 			description: newJob.value.description,
 			employerId: authStore.user.id,
+			employerName: authStore.user.username,
+			applications: [], // Inicializa un array vacío para las postulaciones
 		});
 		if (response.status === 201) {
 			alert("Trabajo creado exitosamente");
@@ -109,6 +115,16 @@ async function deleteJob(jobId) {
 			}`
 		);
 	}
+}
+
+function viewApplicants(job) {
+	applicants.value = job.applications.map((application) => ({
+		username: application.username,
+		email: application.email,
+	}));
+	const modalEl = document.getElementById("applicantsModal");
+	const modal = new bootstrap.Modal(modalEl);
+	modal.show();
 }
 
 onMounted(fetchJobs);
@@ -171,23 +187,35 @@ onMounted(fetchJobs);
 				<h3 class="text-primary mb-4">
 					<i class="fas fa-briefcase"></i> Mis Trabajos Publicados
 				</h3>
-				<div class="row g-4">
-					<div class="col-md-6" v-for="job in jobs" :key="job.id">
+				<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+					<div class="col" v-for="job in jobs" :key="job.id">
 						<div class="card shadow-sm h-100 border-0">
-							<div class="card-body">
+							<div class="card-body d-flex flex-column">
 								<h5 class="card-title text-primary">
 									<i class="fas fa-briefcase"></i> {{ job.title }}
 								</h5>
 								<p class="card-text text-muted">{{ job.description }}</p>
-								<button class="btn btn-outline-primary" @click="editJob(job)">
-									<i class="fas fa-edit"></i> Editar
-								</button>
-								<button
-									class="btn btn-outline-danger ms-2"
-									@click="deleteJob(job.id)"
-								>
-									<i class="fas fa-trash"></i> Eliminar
-								</button>
+								<p class="card-text text-muted">
+									<strong>Cantidad de Postulantes:</strong>
+									{{ job.applications.length }}
+								</p>
+								<div class="mt-auto d-grid gap-2">
+									<button class="btn btn-outline-primary" @click="editJob(job)">
+										<i class="fas fa-edit"></i> Editar
+									</button>
+									<button
+										class="btn btn-outline-info"
+										@click="viewApplicants(job)"
+									>
+										<i class="fas fa-users"></i> Ver Postulantes
+									</button>
+									<button
+										class="btn btn-outline-danger"
+										@click="deleteJob(job.id)"
+									>
+										<i class="fas fa-trash"></i> Eliminar
+									</button>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -249,6 +277,52 @@ onMounted(fetchJobs);
 			</div>
 		</div>
 	</div>
+
+	<!-- Modal para Ver los Postulantes -->
+	<div
+		class="modal fade"
+		id="applicantsModal"
+		tabindex="-1"
+		aria-labelledby="applicantsModalLabel"
+		aria-hidden="true"
+	>
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="applicantsModalLabel">
+						Detalles de los Postulantes
+					</h5>
+					<button
+						type="button"
+						class="btn-close"
+						data-bs-dismiss="modal"
+						aria-label="Close"
+					></button>
+				</div>
+				<div class="modal-body">
+					<ul class="list-group">
+						<li
+							class="list-group-item"
+							v-for="applicant in applicants"
+							:key="applicant.email"
+						>
+							<strong>Nombre:</strong> {{ applicant.username }}<br />
+							<strong>Email:</strong> {{ applicant.email }}
+						</li>
+					</ul>
+				</div>
+				<div class="modal-footer">
+					<button
+						type="button"
+						class="btn btn-secondary"
+						data-bs-dismiss="modal"
+					>
+						Cerrar
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
 </template>
 
 <style scoped>
@@ -284,5 +358,9 @@ onMounted(fetchJobs);
 .btn-success:hover {
 	background-color: #218838;
 	border-color: #1e7e34;
+}
+
+.d-grid {
+	gap: 10px;
 }
 </style>

@@ -4,27 +4,53 @@ import axios from "axios";
 import { useAuthStore } from "../stores/auth";
 
 const users = ref([]);
+const jobs = ref([]);
 const selectedUser = ref(null);
-const API_URL =
+const API_USERS_URL =
 	"https://671d78fd09103098807d2196.mockapi.io/v1/RegisteredUsers";
+const API_JOBS_URL =
+	"https://671d78fd09103098807d2196.mockapi.io/v1/RegisteredUsers/1/empleo";
 const authStore = useAuthStore();
 
-async function fetchUsers() {
+async function fetchUsersAndJobs() {
 	try {
-		const response = await axios.get(API_URL);
-		if (response.status === 200) {
-			users.value = response.data;
+		// Obtener todos los usuarios
+		const usersResponse = await axios.get(API_USERS_URL);
+		if (usersResponse.status === 200) {
+			users.value = usersResponse.data;
 		} else {
 			console.warn(
-				`Respuesta inesperada al cargar usuarios: ${response.statusText}`
+				`Respuesta inesperada al cargar usuarios: ${usersResponse.statusText}`
 			);
 			alert("Error inesperado al cargar los usuarios.");
 		}
+
+		// Obtener todos los trabajos
+		const jobsResponse = await axios.get(API_JOBS_URL);
+		if (jobsResponse.status === 200) {
+			jobs.value = jobsResponse.data;
+		} else {
+			console.warn(
+				`Respuesta inesperada al cargar trabajos: ${jobsResponse.statusText}`
+			);
+			alert("Error inesperado al cargar los trabajos.");
+		}
+
+		// Calcular la cantidad de postulaciones para cada usuario
+		users.value.forEach((user) => {
+			user.appliedJobsCount = jobs.value.reduce((count, job) => {
+				if (
+					job.applications &&
+					job.applications.some((application) => application.userId === user.id)
+				) {
+					count++;
+				}
+				return count;
+			}, 0);
+		});
 	} catch (error) {
-		console.error("Error al cargar los usuarios:", error);
-		alert(
-			`Error al cargar los usuarios: ${error.message || "Error desconocido"}`
-		);
+		console.error("Error al cargar usuarios o trabajos:", error);
+		alert(`Error al cargar los datos: ${error.message || "Error desconocido"}`);
 	}
 }
 
@@ -34,11 +60,14 @@ function editUser(user) {
 
 async function updateUser() {
 	try {
-		const response = await axios.put(`${API_URL}/${selectedUser.value.id}`, {
-			username: selectedUser.value.username,
-			email: selectedUser.value.email,
-			role: selectedUser.value.role,
-		});
+		const response = await axios.put(
+			`${API_USERS_URL}/${selectedUser.value.id}`,
+			{
+				username: selectedUser.value.username,
+				email: selectedUser.value.email,
+				role: selectedUser.value.role,
+			}
+		);
 		if (response.status === 200) {
 			alert("Usuario actualizado exitosamente");
 			// Actualizar la lista de usuarios
@@ -66,7 +95,7 @@ async function updateUser() {
 
 async function deleteUser(userId) {
 	try {
-		const response = await axios.delete(`${API_URL}/${userId}`);
+		const response = await axios.delete(`${API_USERS_URL}/${userId}`);
 		if (response.status === 200) {
 			alert("Usuario eliminado exitosamente");
 			// Remover el usuario de la lista
@@ -84,7 +113,7 @@ async function deleteUser(userId) {
 	}
 }
 
-onMounted(fetchUsers);
+onMounted(fetchUsersAndJobs);
 </script>
 
 <template>
@@ -93,7 +122,7 @@ onMounted(fetchUsers);
 			<div class="card-body">
 				<div class="text-center mb-5">
 					<h2 class="display-4 text-primary">
-						<i class="fas fa-user-shield"></i> Panel de Administrador
+						<i class="fas fa-users-cog"></i> Panel de Administrador
 					</h2>
 					<p class="lead text-secondary">
 						Bienvenido, {{ authStore.user.username }}
@@ -101,10 +130,10 @@ onMounted(fetchUsers);
 				</div>
 
 				<h3 class="text-primary mb-4">
-					<i class="fas fa-users"></i> Usuarios Registrados
+					<i class="fas fa-user-friends"></i> Usuarios Registrados
 				</h3>
-				<div class="row g-4">
-					<div class="col-md-6" v-for="user in users" :key="user.id">
+				<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+					<div class="col" v-for="user in users" :key="user.id">
 						<div class="card shadow-sm h-100 border-0">
 							<div class="card-body">
 								<h5 class="card-title text-primary">
@@ -116,15 +145,24 @@ onMounted(fetchUsers);
 								<p class="card-text text-muted">
 									<strong>Rol:</strong> {{ user.role }}
 								</p>
-								<button class="btn btn-outline-primary" @click="editUser(user)">
-									<i class="fas fa-edit"></i> Editar
-								</button>
-								<button
-									class="btn btn-outline-danger ms-2"
-									@click="deleteUser(user.id)"
-								>
-									<i class="fas fa-trash"></i> Eliminar
-								</button>
+								<p class="card-text text-muted">
+									<strong>Empleos Postulados:</strong>
+									{{ user.appliedJobsCount }}
+								</p>
+								<div class="d-grid gap-2 mt-3">
+									<button
+										class="btn btn-outline-primary"
+										@click="editUser(user)"
+									>
+										<i class="fas fa-edit"></i> Editar
+									</button>
+									<button
+										class="btn btn-outline-danger"
+										@click="deleteUser(user.id)"
+									>
+										<i class="fas fa-trash"></i> Eliminar
+									</button>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -132,7 +170,7 @@ onMounted(fetchUsers);
 
 				<div v-if="selectedUser" class="mt-5">
 					<h3 class="text-primary mb-4">
-						<i class="fas fa-user-edit"></i> Editar Usuario
+						<i class="fas fa-edit"></i> Editar Usuario
 					</h3>
 					<form
 						@submit.prevent="updateUser"
@@ -142,35 +180,25 @@ onMounted(fetchUsers);
 							<label for="edit-username" class="form-label"
 								>Nombre de Usuario</label
 							>
-							<div class="input-group">
-								<span class="input-group-text"
-									><i class="fas fa-user"></i
-								></span>
-								<input
-									v-model="selectedUser.username"
-									id="edit-username"
-									type="text"
-									required
-									class="form-control"
-								/>
-							</div>
+							<input
+								v-model="selectedUser.username"
+								id="edit-username"
+								type="text"
+								required
+								class="form-control"
+							/>
 						</div>
 						<div class="mb-3">
 							<label for="edit-email" class="form-label"
 								>Correo Electrónico</label
 							>
-							<div class="input-group">
-								<span class="input-group-text"
-									><i class="fas fa-envelope"></i
-								></span>
-								<input
-									v-model="selectedUser.email"
-									id="edit-email"
-									type="email"
-									required
-									class="form-control"
-								/>
-							</div>
+							<input
+								v-model="selectedUser.email"
+								id="edit-email"
+								type="email"
+								required
+								class="form-control"
+							/>
 						</div>
 						<div class="mb-3">
 							<label for="edit-role" class="form-label">Rol</label>
@@ -225,5 +253,19 @@ onMounted(fetchUsers);
 .btn-primary:hover {
 	background-color: #1769c0;
 	border-color: #1769c0;
+}
+
+.btn-success {
+	background-color: #28a745;
+	border-color: #28a745;
+}
+
+.btn-success:hover {
+	background-color: #218838;
+	border-color: #1e7e34;
+}
+
+.d-grid {
+	gap: 10px;
 }
 </style>
