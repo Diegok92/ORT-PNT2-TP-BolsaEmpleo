@@ -83,6 +83,7 @@ async function applyToJob(job) {
 
 function isAlreadyApplied(job) {
 	return (
+		authStore.user &&
 		job.applications &&
 		job.applications.some(
 			(application) => application.userId === authStore.user.id
@@ -115,6 +116,9 @@ onMounted(fetchJobs);
 					>
 						<div class="card-body d-flex flex-column">
 							<h5 class="card-title">{{ job.title }}</h5>
+							<p class="card-text">
+								<strong>Empresa:</strong> {{ job.companyName }}
+							</p>
 							<p class="card-text">{{ job.description }}</p>
 							<div class="mt-auto">
 								<button
@@ -124,7 +128,6 @@ onMounted(fetchJobs);
 											? 'btn-secondary'
 											: 'btn-outline-primary'
 									"
-									:disabled="isAlreadyApplied(job)"
 									@click="applyToJob(job)"
 								>
 									<i

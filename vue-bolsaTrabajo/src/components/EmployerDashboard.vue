@@ -6,7 +6,7 @@ import * as bootstrap from "bootstrap";
 
 const jobs = ref([]);
 const selectedJob = ref(null);
-const newJob = ref({ title: "", description: "" });
+const newJob = ref({ title: "", description: "", companyName: "" });
 const applicants = ref([]);
 const API_URL =
 	"https://671d78fd09103098807d2196.mockapi.io/v1/RegisteredUsers/1/empleo";
@@ -44,6 +44,7 @@ async function updateJob() {
 		const response = await axios.put(`${API_URL}/${selectedJob.value.id}`, {
 			title: selectedJob.value.title,
 			description: selectedJob.value.description,
+			companyName: selectedJob.value.companyName,
 		});
 		if (response.status === 200) {
 			alert("Trabajo actualizado exitosamente");
@@ -75,6 +76,7 @@ async function createJob() {
 		const response = await axios.post(API_URL, {
 			title: newJob.value.title,
 			description: newJob.value.description,
+			companyName: newJob.value.companyName,
 			employerId: authStore.user.id,
 			employerName: authStore.user.username,
 			applications: [], // Inicializa un array vacío para las postulaciones
@@ -84,6 +86,7 @@ async function createJob() {
 			jobs.value.push(response.data);
 			newJob.value.title = "";
 			newJob.value.description = "";
+			newJob.value.companyName = "";
 		} else {
 			alert("Error al crear el trabajo: Respuesta inesperada del servidor");
 		}
@@ -166,6 +169,23 @@ onMounted(fetchJobs);
 						</div>
 					</div>
 					<div class="mb-3">
+						<label for="new-company" class="form-label"
+							>Nombre de la Empresa</label
+						>
+						<div class="input-group">
+							<span class="input-group-text"
+								><i class="fas fa-building"></i
+							></span>
+							<input
+								v-model="newJob.companyName"
+								id="new-company"
+								type="text"
+								required
+								class="form-control"
+							/>
+						</div>
+					</div>
+					<div class="mb-3">
 						<label for="new-description" class="form-label">Descripción</label>
 						<div class="input-group">
 							<span class="input-group-text"
@@ -187,13 +207,19 @@ onMounted(fetchJobs);
 				<h3 class="text-primary mb-4">
 					<i class="fas fa-briefcase"></i> Mis Trabajos Publicados
 				</h3>
-				<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+				<div
+					v-if="jobs.length > 0"
+					class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4"
+				>
 					<div class="col" v-for="job in jobs" :key="job.id">
 						<div class="card shadow-sm h-100 border-0">
 							<div class="card-body d-flex flex-column">
 								<h5 class="card-title text-primary">
 									<i class="fas fa-briefcase"></i> {{ job.title }}
 								</h5>
+								<p class="card-text text-muted">
+									<strong>Empresa:</strong> {{ job.companyName }}
+								</p>
 								<p class="card-text text-muted">{{ job.description }}</p>
 								<p class="card-text text-muted">
 									<strong>Cantidad de Postulantes:</strong>
@@ -220,59 +246,8 @@ onMounted(fetchJobs);
 						</div>
 					</div>
 				</div>
-
-				<div v-if="selectedJob" class="mt-5">
-					<h3 class="text-primary mb-4">
-						<i class="fas fa-edit"></i> Editar Trabajo
-					</h3>
-					<form
-						@submit.prevent="updateJob"
-						class="shadow p-4 rounded-4 bg-light"
-					>
-						<div class="mb-3">
-							<label for="edit-title" class="form-label"
-								>Título del Trabajo</label
-							>
-							<div class="input-group">
-								<span class="input-group-text"
-									><i class="fas fa-briefcase"></i
-								></span>
-								<input
-									v-model="selectedJob.title"
-									id="edit-title"
-									type="text"
-									required
-									class="form-control"
-								/>
-							</div>
-						</div>
-						<div class="mb-3">
-							<label for="edit-description" class="form-label"
-								>Descripción</label
-							>
-							<div class="input-group">
-								<span class="input-group-text"
-									><i class="fas fa-align-left"></i
-								></span>
-								<textarea
-									v-model="selectedJob.description"
-									id="edit-description"
-									required
-									class="form-control"
-								></textarea>
-							</div>
-						</div>
-						<button type="submit" class="btn btn-primary">
-							<i class="fas fa-save"></i> Actualizar
-						</button>
-						<button
-							type="button"
-							class="btn btn-secondary ms-2"
-							@click="selectedJob = null"
-						>
-							<i class="fas fa-times"></i> Cancelar
-						</button>
-					</form>
+				<div v-else class="text-center">
+					<p class="lead text-muted">No tienes trabajos publicados aún.</p>
 				</div>
 			</div>
 		</div>
