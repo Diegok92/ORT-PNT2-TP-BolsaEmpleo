@@ -14,7 +14,7 @@ const authStore = useAuthStore();
 
 async function fetchUsersAndJobs() {
 	try {
-		// Obtener todos los usuarios
+		// Obtenemos todos los usuarios
 		const usersResponse = await axios.get(API_USERS_URL);
 		if (usersResponse.status === 200) {
 			users.value = usersResponse.data;
@@ -25,7 +25,7 @@ async function fetchUsersAndJobs() {
 			alert("Error inesperado al cargar los usuarios.");
 		}
 
-		// Obtener todos los trabajos
+		// Obtenemos todos los posteos
 		const jobsResponse = await axios.get(API_JOBS_URL);
 		if (jobsResponse.status === 200) {
 			jobs.value = jobsResponse.data;
@@ -36,7 +36,7 @@ async function fetchUsersAndJobs() {
 			alert("Error inesperado al cargar los trabajos.");
 		}
 
-		// Calcular la cantidad de postulaciones para cada usuario
+		// sumamos las postulaciones para cada postulante
 		users.value.forEach((user) => {
 			user.appliedJobsCount = jobs.value.reduce((count, job) => {
 				if (
@@ -55,7 +55,7 @@ async function fetchUsersAndJobs() {
 }
 
 function editUser(user) {
-	selectedUser.value = { ...user }; // Copiar los datos del usuario seleccionado
+	selectedUser.value = { ...user };
 }
 
 async function updateUser() {
@@ -70,14 +70,14 @@ async function updateUser() {
 		);
 		if (response.status === 200) {
 			alert("Usuario actualizado exitosamente");
-			// Actualizar la lista de usuarios
+			// Actualizamos la lista
 			const index = users.value.findIndex(
 				(user) => user.id === selectedUser.value.id
 			);
 			if (index !== -1) {
 				users.value[index] = response.data;
 			}
-			selectedUser.value = null; // Limpiar el formulario de edición
+			selectedUser.value = null; // borramos el formulario q edita
 		} else {
 			alert(
 				"Error al actualizar el usuario: Respuesta inesperada del servidor"
@@ -98,7 +98,7 @@ async function deleteUser(userId) {
 		const response = await axios.delete(`${API_USERS_URL}/${userId}`);
 		if (response.status === 200) {
 			alert("Usuario eliminado exitosamente");
-			// Remover el usuario de la lista
+			// eliminamos al usuario
 			users.value = users.value.filter((user) => user.id !== userId);
 		} else {
 			alert("Error al eliminar el usuario: Respuesta inesperada del servidor");

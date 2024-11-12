@@ -31,7 +31,7 @@ async function fetchAppliedJobs() {
 	try {
 		const response = await axios.get(API_URL);
 		if (response.status === 200) {
-			// Filtrar los empleos a los que se ha postulado el usuario y extraer la fecha de postulación
+			// Filtramos los empleos a los que se postulo el usuario y obtenemos la fecha de postulacion
 			appliedJobs.value = response.data
 				.filter(
 					(job) =>
@@ -67,7 +67,7 @@ async function fetchAppliedJobs() {
 
 async function withdrawApplication(job) {
 	try {
-		// Filtrar la postulación del usuario del array de aplicaciones del trabajo
+		// Filtramos la postulación del usuario del array de aplicaciones del aviso
 		const updatedApplications = job.applications.filter(
 			(application) => application.userId !== authStore.user.id
 		);
@@ -79,7 +79,7 @@ async function withdrawApplication(job) {
 
 		if (response.status === 200) {
 			alert("Te has despostulado exitosamente del trabajo.");
-			fetchAppliedJobs(); // Actualizar la lista de trabajos después de despostularse
+			fetchAppliedJobs(); // Actualizamos la lista de empleos despues de despostularse
 		} else {
 			alert("Error al despostularse: Respuesta inesperada del servidor");
 		}
@@ -104,8 +104,8 @@ async function updateProfile() {
 		});
 		if (response.status === 200) {
 			alert("Perfil actualizado exitosamente");
-			authStore.login(response.data); // Actualizar el store con los nuevos datos
-			isEditingProfile.value = false; // Salir del modo de edición
+			authStore.login(response.data); // Actualizamos el store con los nuevos datos
+			isEditingProfile.value = false;
 		} else {
 			alert("Error al actualizar el perfil: Respuesta inesperada del servidor");
 		}
@@ -131,8 +131,8 @@ async function deleteAccount() {
 		);
 		if (response.status === 200) {
 			alert("Cuenta eliminada exitosamente");
-			authStore.logout(); // Cerrar sesión del usuario eliminado
-			router.push("/"); // Redirigir a la página de inicio
+			authStore.logout(); // Cerramos la sesion del usuario eliminado
+			router.push("/"); // Redirigimos al inicio
 		} else {
 			alert("Error al eliminar la cuenta: Respuesta inesperada del servidor");
 		}
@@ -162,7 +162,6 @@ onMounted(fetchAppliedJobs);
 					</p>
 				</div>
 
-				<!-- Sección de Editar Perfil -->
 				<div class="mb-5">
 					<h3 class="text-primary mb-4">
 						<i class="fas fa-user-edit"></i> Editar Perfil
@@ -276,7 +275,6 @@ onMounted(fetchAppliedJobs);
 					</div>
 				</div>
 
-				<!-- Sección de Mis Postulaciones -->
 				<h3 class="text-primary mb-4">
 					<i class="fas fa-file-alt"></i> Mis Postulaciones
 				</h3>

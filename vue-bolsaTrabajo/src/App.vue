@@ -13,7 +13,6 @@ function logout() {
 }
 
 onMounted(() => {
-	// Inicializa todos los dropdowns en la página usando Bootstrap
 	const dropdownElements = document.querySelectorAll(".dropdown-toggle");
 	dropdownElements.forEach((dropdownToggleEl) => {
 		new bootstrap.Dropdown(dropdownToggleEl);
@@ -23,7 +22,6 @@ onMounted(() => {
 
 <template>
 	<div>
-		<!-- Navbar -->
 		<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
 			<div class="container-fluid">
 				<router-link class="navbar-brand" to="/">
@@ -103,13 +101,11 @@ onMounted(() => {
 			</div>
 		</nav>
 
-		<!-- Router View -->
 		<router-view></router-view>
 	</div>
 </template>
 
 <style>
-/* Colores y estilos adicionales */
 body {
 	font-family: "Roboto", sans-serif;
 	background-color: #f0f2f5;

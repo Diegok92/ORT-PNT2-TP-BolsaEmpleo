@@ -14,11 +14,11 @@ const router = useRouter();
 
 async function UserLogin() {
 	try {
-		// Realizamos una solicitud GET para obtener todos los usuarios registrados
+		// Hacemos un GET para tener todos los usuarios registrados
 		const response = await axios.get(API_URL);
 
 		if (response.status === 200) {
-			// Buscamos el usuario en el listado de registros
+			// Buscamos el usuario
 			const users = response.data;
 			const user = users.find(
 				(u) => u.email === email.value && u.password === password.value
@@ -30,7 +30,7 @@ async function UserLogin() {
 
 				alert("Ingresado exitosamente");
 
-				// Limpiar los campos de formulario
+				// borramos los campos de formulario
 				email.value = "";
 				password.value = "";
 

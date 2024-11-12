@@ -41,7 +41,6 @@ async function applyToJob(job) {
 		return;
 	}
 
-	// Verificar si el usuario ya se postuló a este trabajo
 	if (
 		job.applications &&
 		job.applications.some(
@@ -53,7 +52,7 @@ async function applyToJob(job) {
 	}
 
 	try {
-		// Agregar la postulación al array de aplicaciones del trabajo
+		// Agregamos la postulacion al array de postulantes del trabajo
 		const response = await axios.put(`${API_URL}/${job.id}`, {
 			...job,
 			applications: [
@@ -61,7 +60,7 @@ async function applyToJob(job) {
 				{
 					userId: authStore.user.id,
 					username: authStore.user.username,
-					email: authStore.user.email, // Incluimos el email del postulante
+					email: authStore.user.email,
 					appliedAt: new Date().toISOString(),
 				},
 			],
@@ -69,7 +68,7 @@ async function applyToJob(job) {
 
 		if (response.status === 200) {
 			alert(`Te has postulado exitosamente al trabajo "${job.title}"`);
-			fetchJobs(); // Actualizar la lista de trabajos después de la postulación
+			fetchJobs(); // Actualizamos la lista de trabajos después de la postulacion
 		} else {
 			alert("Error al postularse: Respuesta inesperada del servidor");
 		}
@@ -119,6 +118,9 @@ onMounted(fetchJobs);
 							<p class="card-text">
 								<strong>Empresa:</strong> {{ job.companyName }}
 							</p>
+							<p class="card-text">
+								<strong>Provincia:</strong> {{ job.province }}
+							</p>
 							<p class="card-text">{{ job.description }}</p>
 							<div class="mt-auto">
 								<button
@@ -153,13 +155,12 @@ onMounted(fetchJobs);
 
 <style scoped>
 .overlay {
-	background-color: rgba(0, 0, 0, 0.7); /* Fondo semitransparente oscuro */
+	background-color: rgba(0, 0, 0, 0.7);
 	padding: 2rem;
 	border-radius: 8px;
 	color: #fff;
 }
 
-/* Estilos de la tarjeta */
 .card {
 	border: none;
 	transition: transform 0.3s ease, box-shadow 0.3s ease;
