@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import axios from "axios";
 import { useAuthStore } from "../stores/auth";
 import * as bootstrap from "bootstrap";
@@ -21,7 +21,6 @@ const API_URL =
 const USER_API_URL =
 	"https://671d78fd09103098807d2196.mockapi.io/v1/RegisteredUsers";
 const authStore = useAuthStore();
-let applicantsChart = null;
 let genderChart = null;
 let educationChart = null;
 let ageChart = null;
@@ -36,7 +35,6 @@ async function fetchJobs() {
 			jobs.value = response.data.filter(
 				(job) => job.employerId === authStore.user.id
 			);
-			renderCharts();
 		} else {
 			console.warn(
 				`Respuesta inesperada al cargar trabajos: ${response.statusText}`
@@ -53,15 +51,17 @@ async function fetchJobs() {
 
 function editJob(job) {
 	selectedJob.value = { ...job };
+	newJob.value = { ...job }; // Copiamos los datos al formulario de nuevo empleo para editarlo
+	scrollToForm();
 }
 
 async function updateJob() {
 	try {
 		const response = await axios.put(`${API_URL}/${selectedJob.value.id}`, {
-			title: selectedJob.value.title,
-			description: selectedJob.value.description,
-			companyName: selectedJob.value.companyName,
-			province: selectedJob.value.province,
+			title: newJob.value.title,
+			description: newJob.value.description,
+			companyName: newJob.value.companyName,
+			province: newJob.value.province,
 		});
 		if (response.status === 200) {
 			alert("Trabajo actualizado exitosamente");
@@ -72,8 +72,7 @@ async function updateJob() {
 			if (index !== -1) {
 				jobs.value[index] = response.data;
 			}
-			selectedJob.value = null; // Borramos el formulario de edicion
-			renderCharts();
+			cancelEdit(); // Borra el formulario de edit
 		} else {
 			alert(
 				"Error al actualizar el trabajo: Respuesta inesperada del servidor"
@@ -103,11 +102,7 @@ async function createJob() {
 		if (response.status === 201) {
 			alert("Trabajo creado exitosamente");
 			jobs.value.push(response.data);
-			newJob.value.title = "";
-			newJob.value.description = "";
-			newJob.value.companyName = "";
-			newJob.value.province = "";
-			renderCharts();
+			resetForm();
 		} else {
 			alert("Error al crear el trabajo: Respuesta inesperada del servidor");
 		}
@@ -128,7 +123,6 @@ async function deleteJob(jobId) {
 			alert("Trabajo eliminado exitosamente");
 			// Borramos el posteo de la lista
 			jobs.value = jobs.value.filter((job) => job.id !== jobId);
-			renderCharts();
 		} else {
 			alert("Error al eliminar el trabajo: Respuesta inesperada del servidor");
 		}
@@ -146,262 +140,178 @@ function viewApplicants(job) {
 	applicants.value = job.applications.map((application) => ({
 		username: application.username,
 		email: application.email,
+		gender: application.gender,
+		age: application.age,
+		province: application.province,
+		educationLevel: application.educationLevel,
 	}));
 	const modalEl = document.getElementById("applicantsModal");
 	const modal = new bootstrap.Modal(modalEl);
 	modal.show();
 }
 
-function renderCharts() {
-	renderApplicantsChart();
-	renderGenderChart();
-	renderEducationChart();
-	renderAgeChart();
-	renderProvinceChart();
+function viewJobMetrics(job) {
+	const jobApplicants = job.applications;
+	renderJobMetricsCharts(job.title, jobApplicants);
+	const modalEl = document.getElementById("jobMetricsModal");
+	const modal = new bootstrap.Modal(modalEl);
+	modal.show();
 }
 
-function renderApplicantsChart() {
-	if (applicantsChart) {
-		applicantsChart.destroy();
+function renderJobMetricsCharts(jobTitle, jobApplicants) {
+	if (genderChart) {
+		genderChart.destroy();
 	}
-
-	const ctx = document.getElementById("applicantsChart").getContext("2d");
-	applicantsChart = new Chart(ctx, {
-		type: "bar",
+	const genderCtx = document.getElementById("jobGenderChart").getContext("2d");
+	const genderData = jobApplicants.reduce((acc, applicant) => {
+		if (applicant.gender) {
+			acc[applicant.gender] = (acc[applicant.gender] || 0) + 1;
+		}
+		return acc;
+	}, {});
+	genderChart = new Chart(genderCtx, {
+		type: "pie",
 		data: {
-			labels: jobs.value.map((job) => job.title),
+			labels: Object.keys(genderData),
 			datasets: [
 				{
-					label: "Cantidad de Postulantes",
-					data: jobs.value.map((job) => job.applications.length),
-					backgroundColor: "rgba(54, 162, 235, 0.6)",
-					borderColor: "rgba(54, 162, 235, 1)",
-					borderWidth: 1,
+					data: Object.values(genderData),
+					backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
 				},
 			],
 		},
 		options: {
-			responsive: true,
 			plugins: {
-				legend: {
-					position: "top",
-				},
 				title: {
 					display: true,
-					text: "Cantidad de Postulantes por Trabajo",
+					text: `Género de Postulantes para "${jobTitle}"`,
+				},
+			},
+		},
+	});
+
+	if (educationChart) {
+		educationChart.destroy();
+	}
+	const educationCtx = document
+		.getElementById("jobEducationChart")
+		.getContext("2d");
+	const educationData = jobApplicants.reduce((acc, applicant) => {
+		if (applicant.educationLevel) {
+			acc[applicant.educationLevel] = (acc[applicant.educationLevel] || 0) + 1;
+		}
+		return acc;
+	}, {});
+	educationChart = new Chart(educationCtx, {
+		type: "bar",
+		data: {
+			labels: Object.keys(educationData),
+			datasets: [
+				{
+					label: "Nivel Académico",
+					data: Object.values(educationData),
+					backgroundColor: "rgba(75, 192, 192, 0.6)",
+				},
+			],
+		},
+		options: {
+			plugins: {
+				title: {
+					display: true,
+					text: `Nivel Académico de Postulantes para "${jobTitle}"`,
+				},
+			},
+		},
+	});
+
+	if (ageChart) {
+		ageChart.destroy();
+	}
+	const ageCtx = document.getElementById("jobAgeChart").getContext("2d");
+	const ageData = jobApplicants.reduce((acc, applicant) => {
+		if (applicant.age) {
+			acc[applicant.age] = (acc[applicant.age] || 0) + 1;
+		}
+		return acc;
+	}, {});
+	ageChart = new Chart(ageCtx, {
+		type: "bar",
+		data: {
+			labels: Object.keys(ageData),
+			datasets: [
+				{
+					label: "Edad de Postulantes",
+					data: Object.values(ageData),
+					backgroundColor: "rgba(153, 102, 255, 0.6)",
+				},
+			],
+		},
+		options: {
+			plugins: {
+				title: {
+					display: true,
+					text: `Edad de Postulantes para "${jobTitle}"`,
+				},
+			},
+		},
+	});
+
+	if (provinceChart) {
+		provinceChart.destroy();
+	}
+	const provinceCtx = document
+		.getElementById("jobProvinceChart")
+		.getContext("2d");
+	const provinceData = jobApplicants.reduce((acc, applicant) => {
+		if (applicant.province) {
+			acc[applicant.province] = (acc[applicant.province] || 0) + 1;
+		}
+		return acc;
+	}, {});
+	provinceChart = new Chart(provinceCtx, {
+		type: "bar",
+		data: {
+			labels: Object.keys(provinceData),
+			datasets: [
+				{
+					label: "Provincia de Origen",
+					data: Object.values(provinceData),
+					backgroundColor: "rgba(255, 159, 64, 0.6)",
+				},
+			],
+		},
+		options: {
+			plugins: {
+				title: {
+					display: true,
+					text: `Provincia de Origen de Postulantes para "${jobTitle}"`,
 				},
 			},
 		},
 	});
 }
 
-async function renderGenderChart() {
-	if (genderChart) {
-		genderChart.destroy();
-	}
-
-	try {
-		const response = await axios.get(USER_API_URL);
-		if (response.status === 200) {
-			const genderData = response.data.reduce(
-				(acc, user) => {
-					if (user.role === "Postulante") {
-						acc[user.gender]++;
-					}
-					return acc;
-				},
-				{ Masculino: 0, Femenino: 0, Otro: 0 }
-			);
-
-			const ctx = document.getElementById("genderChart").getContext("2d");
-			genderChart = new Chart(ctx, {
-				type: "pie",
-				data: {
-					labels: Object.keys(genderData),
-					datasets: [
-						{
-							data: Object.values(genderData),
-							backgroundColor: [
-								"rgba(255, 99, 132, 0.6)",
-								"rgba(54, 162, 235, 0.6)",
-								"rgba(255, 206, 86, 0.6)",
-							],
-							borderColor: [
-								"rgba(255, 99, 132, 1)",
-								"rgba(54, 162, 235, 1)",
-								"rgba(255, 206, 86, 1)",
-							],
-							borderWidth: 1,
-						},
-					],
-				},
-				options: {
-					responsive: true,
-					plugins: {
-						legend: {
-							position: "top",
-						},
-						title: {
-							display: true,
-							text: "Distribución por Género de los Postulantes",
-						},
-					},
-				},
-			});
-		}
-	} catch (error) {
-		console.error("Error al cargar datos de género:", error);
-	}
+function cancelEdit() {
+	selectedJob.value = null;
+	resetForm();
 }
 
-async function renderEducationChart() {
-	if (educationChart) {
-		educationChart.destroy();
-	}
-
-	try {
-		const response = await axios.get(USER_API_URL);
-		if (response.status === 200) {
-			const educationData = response.data.reduce((acc, user) => {
-				if (user.role === "Postulante") {
-					acc[user.educationLevel] = (acc[user.educationLevel] || 0) + 1;
-				}
-				return acc;
-			}, {});
-
-			const ctx = document.getElementById("educationChart").getContext("2d");
-			educationChart = new Chart(ctx, {
-				type: "bar",
-				data: {
-					labels: Object.keys(educationData),
-					datasets: [
-						{
-							label: "Cantidad de Postulantes",
-							data: Object.values(educationData),
-							backgroundColor: "rgba(75, 192, 192, 0.6)",
-							borderColor: "rgba(75, 192, 192, 1)",
-							borderWidth: 1,
-						},
-					],
-				},
-				options: {
-					responsive: true,
-					plugins: {
-						legend: {
-							position: "top",
-						},
-						title: {
-							display: true,
-							text: "Nivel Educativo de los Postulantes",
-						},
-					},
-				},
-			});
-		}
-	} catch (error) {
-		console.error("Error al cargar datos de educación:", error);
-	}
+function resetForm() {
+	newJob.value = {
+		title: "",
+		description: "",
+		companyName: "",
+		province: "",
+	};
 }
 
-async function renderAgeChart() {
-	if (ageChart) {
-		ageChart.destroy();
-	}
-
-	try {
-		const response = await axios.get(USER_API_URL);
-		if (response.status === 200) {
-			const ageData = response.data.reduce((acc, user) => {
-				if (user.role === "Postulante") {
-					const ageGroup = `${Math.floor(user.age / 10) * 10}-${
-						Math.floor(user.age / 10) * 10 + 9
-					}`;
-					acc[ageGroup] = (acc[ageGroup] || 0) + 1;
-				}
-				return acc;
-			}, {});
-
-			const ctx = document.getElementById("ageChart").getContext("2d");
-			ageChart = new Chart(ctx, {
-				type: "bar",
-				data: {
-					labels: Object.keys(ageData),
-					datasets: [
-						{
-							label: "Cantidad de Postulantes",
-							data: Object.values(ageData),
-							backgroundColor: "rgba(153, 102, 255, 0.6)",
-							borderColor: "rgba(153, 102, 255, 1)",
-							borderWidth: 1,
-						},
-					],
-				},
-				options: {
-					responsive: true,
-					plugins: {
-						legend: {
-							position: "top",
-						},
-						title: {
-							display: true,
-							text: "Distribución por Edad de los Postulantes",
-						},
-					},
-				},
-			});
+function scrollToForm() {
+	nextTick(() => {
+		const formElement = document.getElementById("jobForm");
+		if (formElement) {
+			formElement.scrollIntoView({ behavior: "smooth" });
 		}
-	} catch (error) {
-		console.error("Error al cargar datos de edad:", error);
-	}
-}
-
-async function renderProvinceChart() {
-	if (provinceChart) {
-		provinceChart.destroy();
-	}
-
-	try {
-		const response = await axios.get(USER_API_URL);
-		if (response.status === 200) {
-			const provinceData = response.data.reduce((acc, user) => {
-				if (user.role === "Postulante") {
-					acc[user.province] = (acc[user.province] || 0) + 1;
-				}
-				return acc;
-			}, {});
-
-			const ctx = document.getElementById("provinceChart").getContext("2d");
-			provinceChart = new Chart(ctx, {
-				type: "bar",
-				data: {
-					labels: Object.keys(provinceData),
-					datasets: [
-						{
-							label: "Cantidad de Postulantes",
-							data: Object.values(provinceData),
-							backgroundColor: "rgba(255, 159, 64, 0.6)",
-							borderColor: "rgba(255, 159, 64, 1)",
-							borderWidth: 1,
-						},
-					],
-				},
-				options: {
-					responsive: true,
-					plugins: {
-						legend: {
-							position: "top",
-						},
-						title: {
-							display: true,
-							text: "Distribución por Provincia de los Postulantes",
-						},
-					},
-				},
-			});
-		}
-	} catch (error) {
-		console.error("Error al cargar datos de provincia:", error);
-	}
+	});
 }
 
 onMounted(fetchJobs);
@@ -420,11 +330,12 @@ onMounted(fetchJobs);
 					</p>
 				</div>
 
-				<h3 class="text-primary mb-4">
-					<i class="fas fa-plus-circle"></i> Crear Nuevo Trabajo
+				<h3 class="text-primary mb-4" id="jobForm">
+					<i class="fas fa-plus-circle"></i>
+					{{ selectedJob ? "Actualizar Trabajo" : "Crear Nuevo Trabajo" }}
 				</h3>
 				<form
-					@submit.prevent="createJob"
+					@submit.prevent="selectedJob ? updateJob() : createJob()"
 					class="shadow p-4 rounded-4 bg-light mb-5"
 				>
 					<div class="mb-3">
@@ -488,46 +399,21 @@ onMounted(fetchJobs);
 							/>
 						</div>
 					</div>
-					<button type="submit" class="btn btn-success w-100">
-						<i class="fas fa-save"></i> Crear Trabajo
-					</button>
+					<div class="d-flex justify-content-between">
+						<button type="submit" class="btn btn-success">
+							<i class="fas fa-save"></i>
+							{{ selectedJob ? "Actualizar Trabajo" : "Crear Trabajo" }}
+						</button>
+						<button
+							v-if="selectedJob"
+							type="button"
+							class="btn btn-secondary"
+							@click="cancelEdit"
+						>
+							<i class="fas fa-times"></i> Cancelar
+						</button>
+					</div>
 				</form>
-
-				<h3 class="text-primary mb-4">
-					<i class="fas fa-chart-bar"></i> Métricas de Mis Trabajos
-				</h3>
-				<div class="mb-5">
-					<canvas id="applicantsChart"></canvas>
-				</div>
-
-				<h3 class="text-primary mb-4">
-					<i class="fas fa-chart-pie"></i> Distribución por Género
-				</h3>
-				<div class="mb-5">
-					<canvas id="genderChart"></canvas>
-				</div>
-
-				<h3 class="text-primary mb-4">
-					<i class="fas fa-graduation-cap"></i> Nivel Educativo de Postulantes
-				</h3>
-				<div class="mb-5">
-					<canvas id="educationChart"></canvas>
-				</div>
-
-				<h3 class="text-primary mb-4">
-					<i class="fas fa-users"></i> Distribución por Edad de Postulantes
-				</h3>
-				<div class="mb-5">
-					<canvas id="ageChart"></canvas>
-				</div>
-
-				<h3 class="text-primary mb-4">
-					<i class="fas fa-map-marker-alt"></i> Distribución por Provincia de
-					los Postulantes
-				</h3>
-				<div class="mb-5">
-					<canvas id="provinceChart"></canvas>
-				</div>
 
 				<h3 class="text-primary mb-4">
 					<i class="fas fa-briefcase"></i> Mis Trabajos Publicados
@@ -562,6 +448,12 @@ onMounted(fetchJobs);
 										@click="viewApplicants(job)"
 									>
 										<i class="fas fa-users"></i> Ver Postulantes
+									</button>
+									<button
+										class="btn btn-outline-success"
+										@click="viewJobMetrics(job)"
+									>
+										<i class="fas fa-chart-pie"></i> Métricas
 									</button>
 									<button
 										class="btn btn-outline-danger"
@@ -609,9 +501,57 @@ onMounted(fetchJobs);
 							:key="applicant.email"
 						>
 							<strong>Nombre:</strong> {{ applicant.username }}<br />
-							<strong>Email:</strong> {{ applicant.email }}
+							<strong>Email:</strong> {{ applicant.email }}<br />
+							<strong>Sexo:</strong> {{ applicant.gender }}<br />
+							<strong>Edad:</strong> {{ applicant.age }}<br />
+							<strong>Provincia:</strong> {{ applicant.province }}<br />
+							<strong>Nivel Académico:</strong> {{ applicant.educationLevel }}
 						</li>
 					</ul>
+				</div>
+				<div class="modal-footer">
+					<button
+						type="button"
+						class="btn btn-secondary"
+						data-bs-dismiss="modal"
+					>
+						Cerrar
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div
+		class="modal fade"
+		id="jobMetricsModal"
+		tabindex="-1"
+		aria-labelledby="jobMetricsModalLabel"
+		aria-hidden="true"
+	>
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button
+						type="button"
+						class="btn-close"
+						data-bs-dismiss="modal"
+						aria-label="Close"
+					></button>
+				</div>
+				<div class="modal-body">
+					<div class="mb-5">
+						<canvas id="jobGenderChart"></canvas>
+					</div>
+					<div class="mb-5">
+						<canvas id="jobEducationChart"></canvas>
+					</div>
+					<div class="mb-5">
+						<canvas id="jobAgeChart"></canvas>
+					</div>
+					<div class="mb-5">
+						<canvas id="jobProvinceChart"></canvas>
+					</div>
 				</div>
 				<div class="modal-footer">
 					<button
