@@ -11,7 +11,7 @@ const gender = ref("");
 const province = ref("");
 const age = ref("");
 const educationLevel = ref("");
-
+const emailError = ref("");
 const showPostulanteFields = ref(false);
 
 const API_URL =
@@ -22,7 +22,37 @@ watch(role, (newRole) => {
 	showPostulanteFields.value = newRole === "Postulante";
 });
 
+async function checkEmailExists() {
+	try {
+		const response = await axios.get(API_URL, {
+			params: { email: email.value },
+		});
+
+		if (response.status === 200) {
+			const users = response.data;
+			if (users.some((user) => user.email === email.value)) {
+				emailError.value = "Este email ya está registrado. Elija otro.";
+			} else {
+				emailError.value = "";
+			}
+		} else {
+			console.warn(
+				`Error inesperado al verificar el email: ${response.statusText}`
+			);
+			emailError.value = "";
+		}
+	} catch (error) {
+		console.error("Error al verificar el email:", error);
+		emailError.value = "";
+	}
+}
+
 async function registerUser() {
+	if (emailError.value) {
+		alert("Corrija los errores antes de continuar.");
+		return;
+	}
+
 	try {
 		const userData = {
 			username: username.value,
@@ -42,6 +72,7 @@ async function registerUser() {
 
 		if (response.status === 201) {
 			alert("Usuario registrado exitosamente");
+
 			username.value = "";
 			email.value = "";
 			password.value = "";
@@ -101,8 +132,10 @@ async function registerUser() {
 								required
 								class="form-control"
 								placeholder="ejemplo@correo.com"
+								@blur="checkEmailExists"
 							/>
 						</div>
+						<div v-if="emailError" class="text-danger">{{ emailError }}</div>
 					</div>
 
 					<div class="mb-3">
